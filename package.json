@@ -1,6 +1,9 @@
 {
   "name": "regulator-discord-bot",
   "version": "1.0.0",
+  "engines": {
+    "node": "16.x"
+  },
   "description": "shut up",
   "main": "index.js",
   "scripts": {
