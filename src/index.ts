@@ -1,52 +1,50 @@
-const { Client, Intents } = require('discord.js');
-const { joinVoiceChannel, entersState, VoiceConnectionStatus, createAudioPlayer, createAudioResource, StreamType, AudioPlayerStatus} = require('@discordjs/voice')
+import { Client, Intents } from 'discord.js'
 
-const client = new Client({intents: ['GUILDS', 'GUILD_MESSAGES', 'GUILD_VOICE_STATES']});
+import { buildCommands } from './commands'
+import Rock from './rock'
 
-let connection
-
-const player = createAudioPlayer()
-
-function playShutUp() {
-  const resource = createAudioResource('assets/shut-up-bitch.mp3', {
-    inputType: StreamType.Arbitrary
-  })
-
-  player.play(resource)
-
-  return entersState(player, AudioPlayerStatus.Playing, 5e3)
+type Guilds = {
+  [id: string]: {
+    parseCommand: Function
+  }
 }
 
-async function connectToChannel(channel) {
-	const connection = joinVoiceChannel({
-		channelId: channel.id,
-		guildId: channel.guild.id,
-		adapterCreator: channel.guild.voiceAdapterCreator,
-	});
-	try {
-		await entersState(connection, VoiceConnectionStatus.Ready, 30_000);
-		return connection;
-	} catch (error) {
-		connection.destroy();
-		throw error;
-	}
-}
+const guilds: Guilds = {}
+
+const client = new Client({
+  intents: [
+    Intents.FLAGS.GUILDS,
+    Intents.FLAGS.GUILD_MESSAGES,
+    Intents.FLAGS.GUILD_VOICE_STATES
+  ]
+})
 
 client.on('ready', () => {
-  console.log(`Logged in as ${client.user.tag}!`);
+  console.log(`Logged in as ${client?.user?.tag}!`);
 });
 
 client.on('messageCreate', async message => {
-  if (message.content === '--regulate') {
-    const channel = message.member?.voice.channel
+  const id = message.guildId! 
+  const content = message.content
 
-    connection = await connectToChannel(channel)
-    connection.subscribe(player)
+  console.log(guilds)
+  if (guilds[id]) {
+    guilds[id].parseCommand(content)
+  } else {
+    const rock = new Rock(message.channel as any)
 
-    message.reply('shut up')
-  } else if (message.content === '--say-the-word') {
-    await playShutUp()
+    rock.init()
+
+    guilds[id] = buildCommands({
+      identifier: '!rock',
+      cmds: [
+        {
+          name: 'say it',
+          func: rock.play
+        }
+      ]
+    })
   }
 });
 
-// client.login(process.env.TOKEN);
+client.login(process.env.TOKEN);
