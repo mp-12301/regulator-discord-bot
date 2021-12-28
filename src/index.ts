@@ -1,4 +1,4 @@
-import { Client, Intents } from 'discord.js'
+import { Client, Intents, Message } from 'discord.js'
 
 import { buildCommands } from './commands'
 import Rock from './rock'
@@ -25,26 +25,31 @@ client.on('ready', () => {
 
 client.on('messageCreate', async message => {
   const id = message.guildId! 
-  const content = message.content
 
-  console.log(guilds)
-  if (guilds[id]) {
-    guilds[id].parseCommand(content)
-  } else {
-    const rock = new Rock(message.channel as any)
-
-    rock.init()
+  if (!guilds[id]) {
+    const rock = new Rock()
 
     guilds[id] = buildCommands({
       identifier: '!rock',
       cmds: [
         {
           name: 'say it',
-          func: rock.play
+          func: function() {
+            rock.play.apply(rock)
+          }
+        },
+        {
+          name: '',
+          func: function(message: Message) {
+            rock.join.apply(rock, [message])
+            rock.play.apply(rock)
+          }
         }
       ]
     })
   }
+
+  guilds[id].parseCommand(message)
 });
 
 client.login(process.env.TOKEN);
