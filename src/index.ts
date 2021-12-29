@@ -38,11 +38,19 @@ client.on('messageCreate', async message => {
             rock.play.apply(rock)
           }
         },
+        // {
+        //   name: 'set',
+        //   func: function() {
+        //     rock.set.apply(rock)
+        //   }
+        // },
         {
           name: '',
           func: function(message: Message) {
             rock.join.apply(rock, [message])
-            rock.play.apply(rock)
+            // rock.play.apply(rock)
+            rock.intro.apply(rock)
+            rock.listen.apply(rock)
           }
         }
       ]
