@@ -32,18 +32,15 @@ type RockSettings = {
 }
 
 export default class Rock {
-  connection: VoiceConnection | null
-  channel: VoiceBasedChannel | null
+  connection?: VoiceConnection
+  channel?: VoiceBasedChannel
+  receiver?: VoiceReceiver
   player: AudioPlayer
-  receiver: VoiceReceiver | null
 
   tracking: PeopleToShutUp
   settings: RockSettings
 
   constructor() {
-    this.connection = null
-    this.channel = null
-    this.receiver = null
     this.tracking = {}
     this.settings = {
       duration: 1,
@@ -55,7 +52,7 @@ export default class Rock {
   join (message: Message): void{
     const channel = message.member?.voice.channel
 
-    if (this.connection) {
+    if (this.connection && this.channel?.id !== channel?.id) {
       this.connection.destroy()
       this.tracking = {}
     }
